@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Docker安装123456sudo dnf -y install dnf-plugins-coresudo dnf config-manager --add-repo https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;fedora&#x2F;docker-ce.reposudo dnf install docker-ce docker-ce-cli containerd.io# 启动do">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker+Hadoop+Spark简单环境搭建">
+<meta property="og:url" content="http://example.com/2022/11/16/run-spark/index.html">
+<meta property="og:site_name" content="灯泉星">
+<meta property="og:description" content="Docker安装123456sudo dnf -y install dnf-plugins-coresudo dnf config-manager --add-repo https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;fedora&#x2F;docker-ce.reposudo dnf install docker-ce docker-ce-cli containerd.io# 启动do">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-11-15T20:16:07.000Z">
+<meta property="article:modified_time" content="2022-11-15T21:03:04.846Z">
+<meta property="article:author" content="DengQuanxin">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Docker+Hadoop+Spark简单环境搭建</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/11/16/useful-command/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/16/run-spark/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/16/run-spark/&text=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/16/run-spark/&is_video=false&description=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Docker+Hadoop+Spark简单环境搭建&body=Check out this article: http://example.com/2022/11/16/run-spark/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/16/run-spark/&name=Docker+Hadoop+Spark简单环境搭建&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/16/run-spark/&t=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker"><span class="toc-number">1.</span> <span class="toc-text">Docker</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85"><span class="toc-number">1.1.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E9%95%9C%E5%83%8F"><span class="toc-number">1.2.</span> <span class="toc-text">获取镜像</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%AE%B9%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">创建容器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E5%AE%83%E6%93%8D%E4%BD%9C"><span class="toc-number">1.4.</span> <span class="toc-text">其它操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hadoop"><span class="toc-number">2.</span> <span class="toc-text">Hadoop</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8IP"><span class="toc-number">2.1.</span> <span class="toc-text">查看容器IP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%AE%B9%E5%99%A8IP"><span class="toc-number">2.2.</span> <span class="toc-text">配置容器IP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8CHDFS"><span class="toc-number">2.3.</span> <span class="toc-text">运行HDFS</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spark"><span class="toc-number">3.</span> <span class="toc-text">Spark</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WordCount"><span class="toc-number">4.</span> <span class="toc-text">WordCount</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MapReduce%E8%BF%90%E8%A1%8C"><span class="toc-number">4.1.</span> <span class="toc-text">MapReduce运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spark%E8%BF%90%E8%A1%8C"><span class="toc-number">4.2.</span> <span class="toc-text">Spark运行</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Docker+Hadoop+Spark简单环境搭建
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">DengQuanxin</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-15T20:16:07.000Z" itemprop="datePublished">2022-11-16</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo dnf -y install dnf-plugins-core</span><br><span class="line">sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo</span><br><span class="line">sudo dnf install docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动docker服务</span></span><br><span class="line">service docker start</span><br></pre></td></tr></table></figure>
+
+<h3 id="获取镜像"><a href="#获取镜像" class="headerlink" title="获取镜像"></a>获取镜像</h3><p>这里使用新国大的<a target="_blank" rel="noopener" href="https://hub.docker.com/r/nusbigdatacs4225/ubuntu-with-hadoop-spark">Docker镜像</a>，具体配置如下：</p>
+<ul>
+<li>ubuntu</li>
+<li>jdk 1.8.0_191 (/usr/java)</li>
+<li>Hadoop 2.8.5 (/usr/local/hadoop)</li>
+<li>Spark 2.2.0 (/usr/local/spark)</li>
+</ul>
+<h3 id="创建容器"><a href="#创建容器" class="headerlink" title="创建容器"></a>创建容器</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -it -h master --name master nusbigdatacs4225/ubuntu-with-hadoop-spark</span><br><span class="line">docker run -it -h slave01 --name slave01 nusbigdatacs4225/ubuntu-with-hadoop-spark</span><br><span class="line">docker run -it -h slave02 --name slave02 nusbigdatacs4225/ubuntu-with-hadoop-spark</span><br></pre></td></tr></table></figure>
+
+<h3 id="其它操作"><a href="#其它操作" class="headerlink" title="其它操作"></a>其它操作</h3><ul>
+<li>退出container: <code>exit</code></li>
+<li>查看containers: <code>sudo docker ps [-a]</code></li>
+<li>重启container: <code>sudo docker container start [name]</code></li>
+<li>进入container命令行: <code>sudo docker attach [name]</code></li>
+</ul>
+<h2 id="Hadoop"><a href="#Hadoop" class="headerlink" title="Hadoop"></a>Hadoop</h2><h3 id="查看容器IP"><a href="#查看容器IP" class="headerlink" title="查看容器IP"></a>查看容器IP</h3><p>使用<code>ifconfig</code>查看三个容器各自的ip，假设得到的ip如下:</p>
+<ul>
+<li>master: 172.17.0.2</li>
+<li>slave01:172.17.0.3</li>
+<li>slave02:172.17.0.4</li>
+</ul>
+<h3 id="配置容器IP"><a href="#配置容器IP" class="headerlink" title="配置容器IP"></a>配置容器IP</h3><p>将对应ip填入/etc/hosts配置中：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/hosts</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">在文件最后追加</span></span><br><span class="line">172.17.0.2    master</span><br><span class="line">172.17.0.3    slave01</span><br><span class="line">172.17.0.4    slave02</span><br></pre></td></tr></table></figure>
+
+<p><code>vi /usr/local/hadoop/etc/hadoop/slaves</code>，增加slave01 slave02</p>
+<h3 id="运行HDFS"><a href="#运行HDFS" class="headerlink" title="运行HDFS"></a>运行HDFS</h3><p>初始化hdfs并且运行: </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local/hadoop</span><br><span class="line">bin/hdfs namenode-format</span><br><span class="line">sbin/start-all.sh</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">hdfs命令</span></span><br><span class="line">/usr/local/hadoop/bin/hdfs dfs -[命令] [参数]</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">如需停止则使用</span></span><br><span class="line">sbin/stop-all.sh</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">如需查看运行情况则使用</span></span><br><span class="line">jps</span><br></pre></td></tr></table></figure>
+
+<h2 id="Spark"><a href="#Spark" class="headerlink" title="Spark"></a>Spark</h2><p>配置hadoop与Java路径：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">vi /usr/local/spark/conf/spark-env.sh</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">&gt;&gt;&gt; 在文件后追加 &gt;&gt;&gt;</span></span><br><span class="line">export JAVA_HOME=/usr/java/jdk1.8.0_191</span><br><span class="line">export HADOOP_HOME=/usr/local/hadoop-2.8.5</span><br><span class="line">export HADOOP_CONF_DIR=/usr/local/hadoop-2.8.5/etc/hadoop</span><br><span class="line">export SPARK_MASTER_IP=172.17.0.2</span><br><span class="line">export SPARK_DIST_CLASSPATH=$(/usr/local/hadoop/bin/hadoop classpath)</span><br></pre></td></tr></table></figure>
+
+<p><code>vi /usr/local/spark/conf/slaves</code>, 配置从节点localhost slave01 slave02</p>
+<h2 id="WordCount"><a href="#WordCount" class="headerlink" title="WordCount"></a>WordCount</h2><h3 id="MapReduce运行"><a href="#MapReduce运行" class="headerlink" title="MapReduce运行"></a>MapReduce运行</h3><ol>
+<li>创建用户目录：<code>/usr/local/hadoop/bin/hdfs dfs -mkdir input /user/</code></li>
+<li>上传input(自行在其中增加需要进行wordcount的文件)：<code>/usr/local/hadoop/bin/hdfs dfs -put input /user/</code></li>
+<li>运行wordcount示例：<code>/usr/local/hadoop/bin/hadoop jar /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.8.5.jar wordcount /user/input /user/output</code></li>
+</ol>
+<h3 id="Spark运行"><a href="#Spark运行" class="headerlink" title="Spark运行"></a>Spark运行</h3><ol>
+<li><p>要求hdfs已启动，并将input文件上传</p>
+</li>
+<li><p>在master中安装pyspark：</p>
+</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apt-get update</span><br><span class="line">apt-get install python3-pip</span><br><span class="line">pip3 install pyspark</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>创建一个python3的软链接pytho：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/bin</span><br><span class="line">ln -s python3 python</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>python实现wordcount</li>
+</ol>
+<figure class="highlight python"><figcaption><span>wordcount.py</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pyspark <span class="keyword">import</span> SparkContext</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">start = time()</span><br><span class="line">sc = SparkContext(<span class="string">&#x27;local&#x27;</span>, <span class="string">&#x27;wordcount&#x27;</span>)</span><br><span class="line">text_file = sc.textFile(<span class="string">&quot;hdfs://master:9000/user/input&quot;</span>)</span><br><span class="line">counts = text_file.flatMap(<span class="keyword">lambda</span> line: line.split(<span class="string">&quot; &quot;</span>)) \</span><br><span class="line">            .<span class="built_in">map</span>(<span class="keyword">lambda</span> word: (word, <span class="number">1</span>)) \</span><br><span class="line">            .reduceByKey(<span class="keyword">lambda</span> a, b: a + b)</span><br><span class="line">counts.saveAsTextFile(<span class="string">&quot;hdfs://master:9000/user/output&quot;</span>)</span><br><span class="line">elapsed = (time() - start)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Time used:&quot;</span>, <span class="built_in">int</span>(elapsed * <span class="number">1000</span>))</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>运行: <code>python wordcount.py</code></li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker"><span class="toc-number">1.</span> <span class="toc-text">Docker</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85"><span class="toc-number">1.1.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E9%95%9C%E5%83%8F"><span class="toc-number">1.2.</span> <span class="toc-text">获取镜像</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%AE%B9%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">创建容器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E5%AE%83%E6%93%8D%E4%BD%9C"><span class="toc-number">1.4.</span> <span class="toc-text">其它操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hadoop"><span class="toc-number">2.</span> <span class="toc-text">Hadoop</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%AE%B9%E5%99%A8IP"><span class="toc-number">2.1.</span> <span class="toc-text">查看容器IP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%AE%B9%E5%99%A8IP"><span class="toc-number">2.2.</span> <span class="toc-text">配置容器IP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8CHDFS"><span class="toc-number">2.3.</span> <span class="toc-text">运行HDFS</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spark"><span class="toc-number">3.</span> <span class="toc-text">Spark</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WordCount"><span class="toc-number">4.</span> <span class="toc-text">WordCount</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MapReduce%E8%BF%90%E8%A1%8C"><span class="toc-number">4.1.</span> <span class="toc-text">MapReduce运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spark%E8%BF%90%E8%A1%8C"><span class="toc-number">4.2.</span> <span class="toc-text">Spark运行</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/16/run-spark/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/16/run-spark/&text=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/16/run-spark/&is_video=false&description=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Docker+Hadoop+Spark简单环境搭建&body=Check out this article: http://example.com/2022/11/16/run-spark/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/16/run-spark/&title=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/16/run-spark/&name=Docker+Hadoop+Spark简单环境搭建&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/16/run-spark/&t=Docker+Hadoop+Spark简单环境搭建"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2022
+    DengQuanxin
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
