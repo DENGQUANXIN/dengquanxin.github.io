@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="执行一条SQL语句，期间发生了什么？MySQL架构分为Server层与存储引擎层，Server层负责管理连接、解析和执行SQL语句，存储引擎层负责数据的存储和提取。一条SQL语句的执行主要会经历四个组件，分别是：连接器、查询缓存、解析器和执行器。  执行SQL前，用户首先需要连接MySQL，连接器主要用于建立连接，管理连接、校验用户身份； 连接建立后，MySQL对于查询语句会首先判断是否在查询缓存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL常见问题">
+<meta property="og:url" content="http://example.com/2022/11/19/mysql-problems/index.html">
+<meta property="og:site_name" content="灯泉星">
+<meta property="og:description" content="执行一条SQL语句，期间发生了什么？MySQL架构分为Server层与存储引擎层，Server层负责管理连接、解析和执行SQL语句，存储引擎层负责数据的存储和提取。一条SQL语句的执行主要会经历四个组件，分别是：连接器、查询缓存、解析器和执行器。  执行SQL前，用户首先需要连接MySQL，连接器主要用于建立连接，管理连接、校验用户身份； 连接建立后，MySQL对于查询语句会首先判断是否在查询缓存">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-11-19T09:32:24.000Z">
+<meta property="article:modified_time" content="2022-11-19T18:45:19.292Z">
+<meta property="article:author" content="DengQuanxin">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
+    
+    <!-- title -->
+    <title>MySQL常见问题</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/11/20/go-problems/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/11/19/redis-problems/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/19/mysql-problems/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/19/mysql-problems/&text=MySQL常见问题"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/19/mysql-problems/&is_video=false&description=MySQL常见问题"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MySQL常见问题&body=Check out this article: http://example.com/2022/11/19/mysql-problems/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/19/mysql-problems/&name=MySQL常见问题&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/19/mysql-problems/&t=MySQL常见问题"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E4%B8%80%E6%9D%A1SQL%E8%AF%AD%E5%8F%A5%EF%BC%8C%E6%9C%9F%E9%97%B4%E5%8F%91%E7%94%9F%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">执行一条SQL语句，期间发生了什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%B4%A2%E5%BC%95%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">什么是索引？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#B-%E6%A0%91%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">B+树是什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">索引的使用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E7%B4%A2%E5%BC%95%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">优化索引的方法？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#like-%E2%80%9C-x%E2%80%9C%E4%B8%80%E5%AE%9A%E4%BD%BF%E7%B4%A2%E5%BC%95%E5%A4%B1%E6%95%88%E5%90%97%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">like “%x“一定使索引失效吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E7%89%B9%E6%80%A7%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">事务特性？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E5%8F%91%E4%BA%8B%E5%8A%A1%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">并发事务问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%EF%BC%9F"><span class="toc-number">9.</span> <span class="toc-text">事务隔离级别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%BB%E8%AF%BB%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%EF%BC%9F"><span class="toc-number">10.</span> <span class="toc-text">幻读怎么解决？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MVCC%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%EF%BC%9F"><span class="toc-number">11.</span> <span class="toc-text">MVCC怎么实现？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%9C%89%E4%BB%80%E4%B9%88%E9%94%81%EF%BC%9F"><span class="toc-number">12.</span> <span class="toc-text">MySQL有什么锁？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%80%8E%E4%B9%88%E5%8A%A0%E9%94%81%E7%9A%84%EF%BC%9F"><span class="toc-number">13.</span> <span class="toc-text">MySQL怎么加锁的？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%AD%BB%E9%94%81%E7%9A%84%E4%BA%A7%E7%94%9F%EF%BC%9F"><span class="toc-number">14.</span> <span class="toc-text">MySQL死锁的产生？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%97%A5%E5%BF%97%EF%BC%9F"><span class="toc-number">15.</span> <span class="toc-text">MySQL日志？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redo-log%E5%88%B7%E7%9B%98%E6%97%B6%E6%9C%BA%EF%BC%9F"><span class="toc-number">16.</span> <span class="toc-text">Redo log刷盘时机？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4%EF%BC%9F"><span class="toc-number">17.</span> <span class="toc-text">两阶段提交？</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        MySQL常见问题
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">DengQuanxin</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-19T09:32:24.000Z" itemprop="datePublished">2022-11-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h3 id="执行一条SQL语句，期间发生了什么？"><a href="#执行一条SQL语句，期间发生了什么？" class="headerlink" title="执行一条SQL语句，期间发生了什么？"></a>执行一条SQL语句，期间发生了什么？</h3><p>MySQL架构分为Server层与存储引擎层，Server层负责管理连接、解析和执行SQL语句，存储引擎层负责数据的存储和提取。<br>一条SQL语句的执行主要会经历四个组件，分别是：连接器、查询缓存、解析器和执行器。</p>
+<ol>
+<li>执行SQL前，用户首先需要连接MySQL，连接器主要用于建立连接，管理连接、校验用户身份；</li>
+<li>连接建立后，MySQL对于查询语句会首先判断是否在查询缓存，若存在则直接返回；不过对于更新频繁的表，表中的查询缓存会频繁失效，导致缓存命中率很低，因此MySQL8.0以后默认关闭查询缓存；</li>
+<li>解析器对 SQL 查询语句进行词法分析、语法分析，然后构建语法树，方便后续模块读取表名、字段、语句类型。</li>
+<li>解析完成后，将执行SQL语句，主要包括预处理、优化和执行三个阶段。预处理阶段检查查询语句中的表或字段是否存在，并将<code>select *</code>中的<code>*</code>扩展为表上的所有列。优化阶段主要负责确定SQL语句的执行方案，如索引的使用。执行阶段从存储引擎读取记录，返回给客户端。</li>
+</ol>
+<h3 id="什么是索引？"><a href="#什么是索引？" class="headerlink" title="什么是索引？"></a>什么是索引？</h3><p>索引是帮助存储引擎快速获取数据的一类数据结构。常见的索引有B+树索引、Hash索引、倒排索引等。</p>
+<h3 id="B-树是什么？"><a href="#B-树是什么？" class="headerlink" title="B+树是什么？"></a>B+树是什么？</h3><p>B+树是一种多叉查找树，它在非叶子节点存储索引，只在叶子节点存储数据，并且叶子节点按索引值顺序连接成了一个双向链表，方便范围查询。B+树存储千万级别的数据仅需3-4层，这意味着查询一次数据只需3到4次磁盘I/O。</p>
+<h3 id="索引的使用？"><a href="#索引的使用？" class="headerlink" title="索引的使用？"></a>索引的使用？</h3><p>索引的好处是能加快查询速度，但索引也会占用物理空间，创建和维护索引也需要时间。因此，索引需要根据场景使用。<br>适合用索引的字段包括：1. 字段的区分度高，最好是唯一性限制；2. 经常用于<code>WHERE</code>语句查询条件或者<code>GROUP BY</code>或者<code>ORDER BY</code>的字段。</p>
+<h3 id="优化索引的方法？"><a href="#优化索引的方法？" class="headerlink" title="优化索引的方法？"></a>优化索引的方法？</h3><ol>
+<li><strong>前缀索引优化</strong>，在一些大字符串的字段用作索引时，可以使用其前几个字符作为前缀索引可以减少索引项大小。但<code>ORDER BY</code>无法使用前缀索引，也无法用作覆盖索引。</li>
+<li><strong>覆盖索引优化</strong>，如果辅助索引包含了查询所需要的所有字段，就可以避免回表查询。</li>
+<li><strong>主键索引最好自增</strong>，插入一条记录，都是追加操作，不容易造成B+树的页分裂。</li>
+<li><strong>防止索引失效</strong>，联合索引要能正确使用需要遵循最左匹配原则，避免因错误使用左或者左右模糊匹配，对索引列做了计算、函数、类型转换操作，OR条件句导致的索引失效。</li>
+</ol>
+<h3 id="like-“-x“一定使索引失效吗？"><a href="#like-“-x“一定使索引失效吗？" class="headerlink" title="like “%x“一定使索引失效吗？"></a>like “%x“一定使索引失效吗？</h3><p>在能使用覆盖索引的情况下，优化器可能会直接使用辅助索引，虽然无法用辅助索引来帮助快速检索，但因为辅助索引上记录的数据更少，直接遍历代价相比于主键索引更小。</p>
+<h3 id="事务特性？"><a href="#事务特性？" class="headerlink" title="事务特性？"></a>事务特性？</h3><p>事务的特性主要是ACID：</p>
+<ol>
+<li><strong>原子性</strong>：事务的操作要么全部成功执行，要么全部不执行。</li>
+<li><strong>一致性</strong>：事务执行前后，数据满足完整性约束，数据库保持一致性状态。</li>
+<li><strong>隔离性</strong>：事务并发执行不会互相影响。</li>
+<li><strong>持久性</strong>：事务提交后对数据的修改是永久的，就算系统故障也不会丢失。</li>
+</ol>
+<h3 id="并发事务问题？"><a href="#并发事务问题？" class="headerlink" title="并发事务问题？"></a>并发事务问题？</h3><ol>
+<li><strong>脏读</strong>：一个事务<strong>读到</strong>了另一个<strong>未提交事务修改过的数据</strong>，就意味着发生了<strong>脏读</strong>现象。</li>
+<li><strong>不可重复读</strong>：在一个事务内多次读取同一个数据，前后两次<strong>读到的数据不一样</strong>的情况。</li>
+<li><strong>幻读</strong>：在一个事务内多次查询某个符合查询条件的<strong>记录数量</strong>，出现前后两次查询到的记录数量不一样。</li>
+</ol>
+<h3 id="事务隔离级别？"><a href="#事务隔离级别？" class="headerlink" title="事务隔离级别？"></a>事务隔离级别？</h3><ol>
+<li><strong>读未提交</strong>：事务可以读到其它事务未提交的变更；可能发生脏读、不可重复读和幻读现象。</li>
+<li><strong>读已提交</strong>：事务只可以读到其它事务已提交的变更；可能发生不可重复读和幻读现象，但是不可能发生脏读现象。</li>
+<li><strong>可重复读</strong>：事务执行过程中看到的数据始终时一致的；可能发生幻读现象，但是不可能脏读和不可重复读现象。</li>
+<li><strong>串行化</strong>：会对记录加上读写锁，并发读写冲突时后访问的事务需等待前一个完成；脏读、不可重复读和幻读现象都不可能会发生。</li>
+</ol>
+<h3 id="幻读怎么解决？"><a href="#幻读怎么解决？" class="headerlink" title="幻读怎么解决？"></a>幻读怎么解决？</h3><p>针对快照读（普通 select 语句），是通过 MVCC 方式解决了幻读；<br>针对当前读（select … for update 等语句），是通过 next-key lock（记录锁+间隙锁）方式解决了幻读。<br>但也也有些场景会发生幻读：</p>
+<ol>
+<li>T1 时刻：事务 A 先执行「快照读语句」：select * from t_test where id &gt; 100 得到了 3 条记录。</li>
+<li>T2 时刻：事务 B 往插入一个 id= 200 的记录并提交；</li>
+<li>T3 时刻：事务 A 再执行「当前读语句」 select * from t_test where id &gt; 100 for update 就会得到 4 条记录，此时也发生了幻读现象。</li>
+</ol>
+<h3 id="MVCC怎么实现？"><a href="#MVCC怎么实现？" class="headerlink" title="MVCC怎么实现？"></a>MVCC怎么实现？</h3><p>MVCC是通过Read View和undo log实现的，Read View包含四个字段，分别是创建Read View的事务的事务ID、创建Read View时活跃且未提交的事务ID列表、活跃未提交的最小事务ID、应该给下个事务的ID。通过这四个字段可以区分出在Read View创建时已提交的、未提交的、还未开始的事务。<br>在数据表的行记录及其undo log记录上都有隐藏字段表示更新它的事务ID，通过Read View和这个隐藏字段就可以判断该记录的可见性，即只有Read View创建时已经提交的记录才是可见的。<br>对于可重复读的隔离级别，Read View是在创建事务时就会创建，事务执行过程中始终使用这一Read View，从而可以保证事务对记录的可见性始终不变。<br>对于读已提交的隔离级别，在每次读的时候都会创建新的Read View，从而可以保证事务每次能够读到已经提交的变更。</p>
+<h3 id="MySQL有什么锁？"><a href="#MySQL有什么锁？" class="headerlink" title="MySQL有什么锁？"></a>MySQL有什么锁？</h3><ol>
+<li><strong>全局锁</strong>：使用<code>flush tables with read lock</code>，整个数据库处于只读状态，主要用于全库逻辑备份。</li>
+<li><strong>表级锁</strong>：<ul>
+<li>表锁：会限制表的读写；</li>
+<li>元数据锁：是为了保证当用户对表执行 CRUD 操作时，防止其他线程对这个表结构做了变更。</li>
+<li>意向锁：意向共享锁和意向独占锁是表级锁，不会和行级的共享锁和独占锁发生冲突，而且意向锁之间也不会发生冲突，只会和共享表锁（lock tables … read）和独占表锁（lock tables … write）发生冲突。</li>
+</ul>
+</li>
+<li><strong>行级锁</strong>：<ul>
+<li>Record Lock：记录锁，锁住的是一条记录，分为 S 锁和 X 锁。</li>
+<li>Gap Lock：间隙锁，只存在于可重复读隔离级别，目的是为了解决可重复读隔离级别下幻读的现象。</li>
+<li>Next-Key Lock：临键锁，是 Record Lock + Gap Lock 的组合，锁定一个范围，并且锁定记录本身。</li>
+<li>插入意向锁：插入时，需判断插入位置是否加了间隙锁，插入操作就会阻塞直到间隙锁释放，在此期间会生成等待状态的插入意向锁，插入意向锁是一种行锁级别的特殊间隙锁。</li>
+</ul>
+</li>
+</ol>
+<h3 id="MySQL怎么加锁的？"><a href="#MySQL怎么加锁的？" class="headerlink" title="MySQL怎么加锁的？"></a>MySQL怎么加锁的？</h3><p>加锁的对象是索引，加锁的基本单位是 next-key lock，它是由记录锁和间隙锁组合而成的，next-key lock 是前开后闭区间，而间隙锁是前开后开区间。<br>但是，next-key lock 在一些场景下会退化成记录锁或间隙锁。在能使用记录锁或者间隙锁就能避免幻读现象的场景下， next-key lock 就会退化成记录锁或间隙锁。</p>
+<ol>
+<li>唯一等值查询：唯一索引进行等值查询。<ul>
+<li>查询记录存在，定位到这一记录后，间隙锁就会退化成记录锁。</li>
+<li>查询记录不存在，找到第一条大于该值的记录后，间隙锁就会退化成间隙锁。</li>
+</ul>
+</li>
+<li>唯一索引范围查询</li>
+</ol>
+<h3 id="MySQL死锁的产生？"><a href="#MySQL死锁的产生？" class="headerlink" title="MySQL死锁的产生？"></a>MySQL死锁的产生？</h3><p>插入意向锁与间隙锁是冲突的，所以当其它事务持有该间隙的间隙锁时，需要等待其它事务释放间隙锁之后，才能获取到插入意向锁。而间隙锁与间隙锁之间是兼容的，所以所以两个事务中 <code>select ... for update</code> 语句并不会相互影响。插入操作为了获取到插入意向锁，都在等待对方事务的间隙锁释放，于是就造成了循环等待，导致死锁。<br>避免死锁的方法：设置事务等待锁的超时时间；开启主动死锁检测。</p>
+<h3 id="MySQL日志？"><a href="#MySQL日志？" class="headerlink" title="MySQL日志？"></a>MySQL日志？</h3><ol>
+<li>undo log（回滚日志）：是 Innodb 存储引擎层生成的日志，实现了事务中的原子性，主要用于事务回滚和 MVCC。</li>
+<li>redo log（重做日志）：是 Innodb 存储引擎层生成的日志，实现了事务中的持久性，主要用于掉电等故障恢复；</li>
+<li>binlog （归档日志）：是 Server 层生成的日志，主要用于数据备份和主从复制；</li>
+</ol>
+<h3 id="Redo-log刷盘时机？"><a href="#Redo-log刷盘时机？" class="headerlink" title="Redo log刷盘时机？"></a>Redo log刷盘时机？</h3><ol>
+<li>当设置该参数为 0 时，表示每次事务提交时 ，还是将 redo log 留在 redo log buffer 中 ，该模式下在事务提交时不会主动触发写入磁盘的操作。</li>
+<li>当设置该参数为 1 时，表示每次事务提交时，都将缓存在 redo log buffer 里的 redo log 直接持久化到磁盘，这样可以保证 MySQL 异常重启之后数据不会丢失（刷盘）。</li>
+<li>当设置该参数为 2 时，表示每次事务提交时，都只是缓存在 redo log buffer 里的 redo log 写到 redo log 文件（不刷盘）。</li>
+</ol>
+<h3 id="两阶段提交？"><a href="#两阶段提交？" class="headerlink" title="两阶段提交？"></a>两阶段提交？</h3><p>MySQL 为了避免出现两份日志之间的逻辑不一致的问题：</p>
+<ol>
+<li>如果在将 redo log 刷入到磁盘之后， MySQL 突然宕机了，而 binlog 还没有来得及写入。</li>
+<li>如果在将 binlog 刷入到磁盘之后， MySQL 突然宕机了，而 redo log 还没有来得及写入。<br>使用了「两阶段提交」来解决</li>
+</ol>
+<ul>
+<li>prepare 阶段：将 XID（内部 XA 事务的 ID） 写入到 redo log，同时将 redo log 对应的事务状态设置为 prepare，然后将 redo log 持久化到磁盘（innodb_flush_log_at_trx_commit = 1 的作用）；</li>
+<li>commit 阶段：把 XID 写入到 binlog，然后将 binlog 持久化到磁盘（sync_binlog = 1 的作用），接着调用引擎的提交事务接口，将 redo log 状态设置为 commit，此时该状态并不需要持久化到磁盘，只需要 write 到文件系统的 page cache 中就够了，因为只要 binlog 写磁盘成功，就算 redo log 的状态还是 prepare 也没有关系，一样会被认为事务已经执行成功；</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E4%B8%80%E6%9D%A1SQL%E8%AF%AD%E5%8F%A5%EF%BC%8C%E6%9C%9F%E9%97%B4%E5%8F%91%E7%94%9F%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">执行一条SQL语句，期间发生了什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%B4%A2%E5%BC%95%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">什么是索引？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#B-%E6%A0%91%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">B+树是什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">索引的使用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E7%B4%A2%E5%BC%95%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">优化索引的方法？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#like-%E2%80%9C-x%E2%80%9C%E4%B8%80%E5%AE%9A%E4%BD%BF%E7%B4%A2%E5%BC%95%E5%A4%B1%E6%95%88%E5%90%97%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">like “%x“一定使索引失效吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E7%89%B9%E6%80%A7%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">事务特性？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E5%8F%91%E4%BA%8B%E5%8A%A1%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">并发事务问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%EF%BC%9F"><span class="toc-number">9.</span> <span class="toc-text">事务隔离级别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%BB%E8%AF%BB%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%EF%BC%9F"><span class="toc-number">10.</span> <span class="toc-text">幻读怎么解决？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MVCC%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%EF%BC%9F"><span class="toc-number">11.</span> <span class="toc-text">MVCC怎么实现？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%9C%89%E4%BB%80%E4%B9%88%E9%94%81%EF%BC%9F"><span class="toc-number">12.</span> <span class="toc-text">MySQL有什么锁？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%80%8E%E4%B9%88%E5%8A%A0%E9%94%81%E7%9A%84%EF%BC%9F"><span class="toc-number">13.</span> <span class="toc-text">MySQL怎么加锁的？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%AD%BB%E9%94%81%E7%9A%84%E4%BA%A7%E7%94%9F%EF%BC%9F"><span class="toc-number">14.</span> <span class="toc-text">MySQL死锁的产生？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E6%97%A5%E5%BF%97%EF%BC%9F"><span class="toc-number">15.</span> <span class="toc-text">MySQL日志？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redo-log%E5%88%B7%E7%9B%98%E6%97%B6%E6%9C%BA%EF%BC%9F"><span class="toc-number">16.</span> <span class="toc-text">Redo log刷盘时机？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4%EF%BC%9F"><span class="toc-number">17.</span> <span class="toc-text">两阶段提交？</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/19/mysql-problems/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/19/mysql-problems/&text=MySQL常见问题"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/19/mysql-problems/&is_video=false&description=MySQL常见问题"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MySQL常见问题&body=Check out this article: http://example.com/2022/11/19/mysql-problems/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/19/mysql-problems/&title=MySQL常见问题"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/19/mysql-problems/&name=MySQL常见问题&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/19/mysql-problems/&t=MySQL常见问题"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2022
+    DengQuanxin
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
