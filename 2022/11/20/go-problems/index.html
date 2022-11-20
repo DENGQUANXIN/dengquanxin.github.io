@@ -14,7 +14,7 @@
 <meta property="og:description" content="Go如何实现面向对象？是，也不是。虽然Go语言可以通过定义类型和方法来实现面向对象的设计风格，但是Go实际上并没有继承这一说法。在Go语言中，interface(接口)这个概念以另外一种角度展现了一种更加易用与通用的设计方法。在Go中，我们可以通过组合，也就是将某个类型放入另外的一个类型中来实现类似继承，让该类型提供有共性但不相同的功能。相比起C++和Java，Go提供了更加通用的定义函数的方法，">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-11-19T21:17:32.000Z">
-<meta property="article:modified_time" content="2022-11-19T21:53:40.127Z">
+<meta property="article:modified_time" content="2022-11-20T10:52:31.791Z">
 <meta property="article:author" content="DengQuanxin">
 <meta name="twitter:card" content="summary">
     
@@ -111,7 +111,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Go如何实现面向对象？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#go%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">go逃逸分析？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#go%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">go内存管理？</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Go如何实现面向对象？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">Go逃逸分析？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">Go内存管理？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">Go垃圾回收机制？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">Go协程调度器？</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -151,18 +151,25 @@
 
   <div class="content" itemprop="articleBody">
     <h3 id="Go如何实现面向对象？"><a href="#Go如何实现面向对象？" class="headerlink" title="Go如何实现面向对象？"></a>Go如何实现面向对象？</h3><p>是，也不是。虽然Go语言可以通过定义类型和方法来实现面向对象的设计风格，但是Go实际上并没有继承这一说法。在Go语言中，interface(接口)这个概念以另外一种角度展现了一种更加易用与通用的设计方法。在Go中，我们可以通过组合，也就是将某个类型放入另外的一个类型中来实现类似继承，让该类型提供有共性但不相同的功能。相比起C++和Java，Go提供了更加通用的定义函数的方法，我们可以指定函数的接受对象(receiver)，它可以是任意的类型，包括内建类型，在这里没有任何的限制。同样的，没有了类型继承，使得Go语言在面向对象编程的方面会显得更加轻量化。</p>
-<h3 id="go逃逸分析？"><a href="#go逃逸分析？" class="headerlink" title="go逃逸分析？"></a>go逃逸分析？</h3><p>在 C 语言和 C++ 这类需要手动管理内存的编程语言中，将对象或者结构体分配到栈上或者堆上是由工程师自主决定的，但是手动分配内存会导致如下的两个问题：1. 不需要分配到堆上的对象分配到了堆上 — 浪费内存空间；2. 需要分配到堆上的对象分配到了栈上 — 悬挂指针、影响内存安全。</p>
+<h3 id="Go逃逸分析？"><a href="#Go逃逸分析？" class="headerlink" title="Go逃逸分析？"></a>Go逃逸分析？</h3><p>在 C 语言和 C++ 这类需要手动管理内存的编程语言中，将对象或者结构体分配到栈上或者堆上是由工程师自主决定的，但是手动分配内存会导致如下的两个问题：1. 不需要分配到堆上的对象分配到了堆上 — 浪费内存空间；2. 需要分配到堆上的对象分配到了栈上 — 悬挂指针、影响内存安全。</p>
 <p>在编译器优化中，逃逸分析是用来决定指针动态作用域的方法。Go 语言的编译器使用逃逸分析决定哪些变量应该在栈上分配，哪些变量应该在堆上分配，其中包括使用 new、make 和字面量等方法隐式分配的内存，Go 语言的逃逸分析遵循以下两个不变性：</p>
 <ol>
 <li>指向栈对象的指针不能存在于堆中；</li>
 <li>指向栈对象的指针不能在栈对象回收后存活；</li>
 </ol>
-<h3 id="go内存管理？"><a href="#go内存管理？" class="headerlink" title="go内存管理？"></a>go内存管理？</h3><p>go内存分配器类似于一个隔离适应策略的空闲链表分配器，另外为了降低并发竞争，构建了多级缓存。</p>
+<h3 id="Go内存管理？"><a href="#Go内存管理？" class="headerlink" title="Go内存管理？"></a>Go内存管理？</h3><p>go内存分配器类似于一个隔离适应策略的空闲链表分配器，另外为了降低并发竞争，构建了多级缓存。</p>
 <p>首先，隔离适应策略是将内存划分为不同大小的内存块，将相同大小的内存块串联成空闲链表，形成多个空闲链表，在进行分配的时候，会将大小最适合的空闲链表的内存块取下分配。这种策略的好处是能够快速找到合适大小内存块，并且管理方便，缺点是由于分配的内存大小是固定的，在遇到需要分配较小内存的情况，会存在一部分内存被浪费。</p>
 <p>go内存分配器类似于隔离适应策略可以从内存基本管理单元mspan看出，span管理着go内存的几个页，每页8KB。mspan中有个spanclass的字段，这一字段标识了mspan管理的内存的跨度类别，也就是单次分配的内存大小。go内存分配器提供了1-67共67种跨度类别，另外类别0专用于大内存的分配。</p>
 <p>其次是go内存分配器实现了多级缓存来分配和使用mspan，主要包括mcache、mcentral、mheap三级组件。<br>mcache是线程的内存缓存，由于它被单个线程所独享，分配时不存在并发竞争无需加锁。mcache内存管理的核心是数组alloc，这个数组一个有2*68个mspan，分别对应前面提到的各种跨度类别，再加上每种类别分为包含指针变量和不包含指针变量两种情况，这是为了区别垃圾回收时是否扫描。</p>
 <p>mcache在初始化阶段alloc数组中所有元素都是空的span，当需要使用时才会真正分配。mheap包含了一个2*68长度的mcentral数组，每个mcentral管理着一种跨度类别的mspan。mcache在分配32KB以下的小对象时，如果发现其mspan不足，就会到对应跨度的mcentral获取mspan。值得一提的是，mcentral中管理的空闲mspan并不完全是以空闲链表的方式进行连接，而是一个由spansetblock构成的无锁栈，每个spansetblock包含一个512大小的mspan数组。</p>
 <p>mheap是内存分配的核心结构体，堆上初始化的所有对象都有该结构体统一管理。go 1.10在初始化时会预留512M、16G、512G的三个连续虚地址空间，分别是spans、bitmap、arena，spans存储了指向mspan的指针，bitmap的一字节记录了32字节的内存是否使用，arena是真正的堆处理区域，分配连续的arena的好处是给一个堆上的地址可以将其减去arena的基地址处理页的大小就可以直接得到对应的页号，然后就能在spans找到其对应的内存管理单元mspan。但这也带来了一些问题，比如在C和go混用时可能会出现错误。因此go1.11 将不在使用一整块连续内存，而是将arena稀疏化，于此同时spans和bitmap也随之稀疏化，存放在名为heaparena的数据结构中管理对应的小块arena。</p>
+<h3 id="Go垃圾回收机制？"><a href="#Go垃圾回收机制？" class="headerlink" title="Go垃圾回收机制？"></a>Go垃圾回收机制？</h3><p>最初的Golang的垃圾回收是完全串行的标记和清除过程，需要暂停整个程序。为了实现并发和增量的垃圾回收，引入了三色标记法，三色标记法将程序中的对象分为白色、黑色和灰色三类。白色对象是未扫描到的对象，黑色是本身和其引用的对象都已扫描的对象，灰色是本身已扫描但还存在引用未扫描的对象。<br>三色标记法的扫描过程类似于广度优先遍历，白色对象是那些还未遍历到的节点，黑色对象是本身和与其直接相连的节点都已被遍历的对象，灰色对象是本身已经被遍历但存在与其直接相连的节点未遍历的节点。三色标记法之所以可以实现增量的标记，其实是在于灰色对象实现了对当前扫描进度的记录，就像是广度优先遍历中的保存了当前遍历边界的队列一样。<br>仅仅只是三色抽象是没有办法达成并发和增量垃圾回收的目标，还需要依赖屏障技术。为了保证并发或者增量时不会将本应保留的对象标记为白色，需要满足两种三色不变性的其中一种：</p>
+<ol>
+<li>强三色不变性，即黑色对象不能引用白色对象；</li>
+<li>弱三色不变性，即黑色对象引用的白色对象必须对于某个灰色对象是可达的。</li>
+</ol>
+<p>插入写屏障和删除写屏障就是为了维持三色不变性而提出的方法，插入写屏障是指在某个指针指向一个新的对象时，会先将白色的新对象染灰，从而保证了强三色不变性。删除写屏障是指在某个指针指向一个新的对象时，会将白色的老对象染灰，从而保证了弱三色不变性。<br>插入写屏障在对栈上的数据进行处理时会有一些问题，栈上的对象是根对象，要么每次扫描STW标记完整个栈，要么在栈上也加入插入写屏障。前一种需要暂停整个程序，后一种会大幅度增加栈上指针写入的额外开销。删除写屏障也叫快照写屏障，他需要在GC开始前扫描整个堆栈来记录快照，并保证通过当前堆栈可达的节点之后依然可达。<br>最开始Golang使用的是STW重新扫描栈+删除写屏障的方式，因为Golang会存在许许多多的协程，他们都有各自的栈，在栈上使用插入写屏障代价太大。Go1.8采用了一种混合写屏障的方式来移除栈的重扫描，具体做法是在所有就对象上使用删除写屏障标记为灰色，并在当前栈没有扫描时将新对象也标记为灰色。</p>
+<h3 id="Go协程调度器？"><a href="#Go协程调度器？" class="headerlink" title="Go协程调度器？"></a>Go协程调度器？</h3><p>GM模型：模型只包含协程G和线程M，维护一个协程全局队列，对于每个想要执行任务的线程需要在全局队列上竞争抢锁，因此存在线程间并发竞争激烈、并且由于协程每次在哪个线程上执行是不确定的，协程运行的局部性很差。<br>为了处理全局队列的并发竞争以及局部性差的问题，Go在GM模型的基础上引入了新的一层P也就是处理器，每个处理包含一个本地协程队列。将之前线程对单个协程的竞争获取，改为了处理器P去调度线程M去执行其本地协程队列。<br>自旋</p>
 
   </div>
 </article>
@@ -186,7 +193,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Go如何实现面向对象？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#go%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">go逃逸分析？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#go%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">go内存管理？</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Go如何实现面向对象？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">Go逃逸分析？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">Go内存管理？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">Go垃圾回收机制？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Go%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%99%A8%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">Go协程调度器？</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
