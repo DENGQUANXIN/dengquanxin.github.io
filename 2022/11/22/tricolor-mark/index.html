@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="三色抽象三色抽象与BFSGC的扫描过程是对可达对象的遍历，可以看作一种多源广度优先遍历。在广度优先遍历中，会使用队列存储遍历的进度，对应于三色抽象中的灰色节点。灰色节点和黑色节点的区别在于灰色节点是当前的扫描边界，它连接着可达的白色节点，灰色节点蕴含了扫描的进度信息。   上图是对三色抽象中不同节点的描述：  虚拟根节点：本不存在的节点，逻辑上为所有的根节点添加一个共同的上级节点以便描述； 根节点">
+<meta property="og:type" content="article">
+<meta property="og:title" content="三色标记法与一些零散的思考">
+<meta property="og:url" content="http://example.com/2022/11/22/tricolor-mark/index.html">
+<meta property="og:site_name" content="灯泉星">
+<meta property="og:description" content="三色抽象三色抽象与BFSGC的扫描过程是对可达对象的遍历，可以看作一种多源广度优先遍历。在广度优先遍历中，会使用队列存储遍历的进度，对应于三色抽象中的灰色节点。灰色节点和黑色节点的区别在于灰色节点是当前的扫描边界，它连接着可达的白色节点，灰色节点蕴含了扫描的进度信息。   上图是对三色抽象中不同节点的描述：  虚拟根节点：本不存在的节点，逻辑上为所有的根节点添加一个共同的上级节点以便描述； 根节点">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/11/22/tricolor-mark/nodes.png">
+<meta property="article:published_time" content="2022-11-22T13:57:29.000Z">
+<meta property="article:modified_time" content="2022-11-23T09:43:04.417Z">
+<meta property="article:author" content="DengQuanxin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/11/22/tricolor-mark/nodes.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
+    
+    <!-- title -->
+    <title>三色标记法与一些零散的思考</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2022/11/23/redlock/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/11/20/go-problems/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="mailto:?subject=三色标记法与一些零散的思考&body=Check out this article: http://example.com/2022/11/22/tricolor-mark/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+</ul>
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E6%8A%BD%E8%B1%A1"><span class="toc-number">1.</span> <span class="toc-text">三色抽象</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E6%8A%BD%E8%B1%A1%E4%B8%8EBFS"><span class="toc-number">1.1.</span> <span class="toc-text">三色抽象与BFS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E4%B8%8D%E5%8F%98%E6%80%A7"><span class="toc-number">1.2.</span> <span class="toc-text">三色不变性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E7%BE%8E%E5%88%92%E5%88%86%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">完美划分？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B1%8F%E9%9A%9C%E6%8A%80%E6%9C%AF"><span class="toc-number">2.</span> <span class="toc-text">屏障技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%B4%E6%8A%A4%E4%B8%89%E8%89%B2%E4%B8%8D%E5%8F%98%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">维护三色不变性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E5%85%A5%E5%86%99%E5%B1%8F%E9%9A%9C"><span class="toc-number">2.2.</span> <span class="toc-text">插入写屏障</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E5%86%99%E5%B1%8F%E9%9A%9C"><span class="toc-number">2.3.</span> <span class="toc-text">删除写屏障</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%B7%E5%90%88%E5%86%99%E5%B1%8F%E9%9A%9C"><span class="toc-number">2.4.</span> <span class="toc-text">混合写屏障</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        三色标记法与一些零散的思考
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">DengQuanxin</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-22T13:57:29.000Z" itemprop="datePublished">2022-11-22</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="三色抽象"><a href="#三色抽象" class="headerlink" title="三色抽象"></a>三色抽象</h2><h3 id="三色抽象与BFS"><a href="#三色抽象与BFS" class="headerlink" title="三色抽象与BFS"></a>三色抽象与BFS</h3><p>GC的扫描过程是对可达对象的遍历，可以看作一种<strong>多源广度优先遍历</strong>。在广度优先遍历中，会使用<strong>队列</strong>存储遍历的进度，对应于三色抽象中的灰色节点。灰色节点和黑色节点的区别在于灰色节点是当前的扫描边界，它连接着可达的白色节点，灰色节点蕴含了扫描的进度信息。</p>
+<img src="/2022/11/22/tricolor-mark/nodes.png" class="" width="500" height="0">
+
+<p>上图是对三色抽象中不同节点的描述：</p>
+<ul>
+<li><strong>虚拟根节点</strong>：本不存在的节点，逻辑上为所有的根节点添加一个共同的上级节点以便描述；</li>
+<li><strong>根节点</strong>：标记起始节点，GC中一般是栈区对象；</li>
+<li><strong>已标记节点</strong>：从根节点可达且被标记为可达的节点；</li>
+<li><strong>标记进度</strong>：已标记节点的边界；</li>
+<li><strong>不可达节点</strong>：从根节点不可达的节点。</li>
+</ul>
+<p>对于GC来说，正确最终标记结果应该是：<strong>可达节点不会被标记为不可达，不可达节点应尽量少地被标记为可达。</strong>对应于上图来说，就是<strong>最终除不可达区域的节点存在白色外，其它节点需全部标记为黑色，并且要使得不可达区域的节点尽可能多</strong>。</p>
+<h3 id="三色不变性"><a href="#三色不变性" class="headerlink" title="三色不变性"></a>三色不变性</h3><p>标记过程是在一个有向图（A指向B表示A引用了B）中进行，对于增量/并发GC而言，这个有向图在遍历的同时会发生改变（<strong>节点、边的新增或删除</strong>）。在增量/并发的环境中，只使用三色抽象是无法保证标记结果的正确性的。<br>若有向图经过一些变化，当<strong>一个白色节点被且仅被至少一个黑色节点（包括图中的虚拟根节点）和任意多个不可达白色节点所指向时</strong>，这一白色节点本身可达，但最终会被标记为不可达。这是因为这个白色节点被放在了标记进度过去的位置，而进度只能往未来继续，无法时光倒流向前回溯。<br>为了增量/并发（<strong>不能直接通过阻止节点或边的增减</strong>来避免这种错误），因此需要一些方法来防止这样的错误发生。在描述具体的方法之前，也许描述这些方法所具有的能力或特性更为重要。</p>
+<p>以下是两种可以阻止错误发生的两种能力：</p>
+<ol>
+<li>避免黑色节点指向白色节点。</li>
+<li>黑色节点可以指向白色节点，但必须使得该白色节点对于任意一个灰色节点是可达的。</li>
+</ol>
+<p>这两种能力被称为<strong>三色不变性</strong>，前者是强三色不变性，后者是弱三色不变性。有向图的动态变化实际上造成的是<strong>标记边界的不确定性</strong>，而三色不变性维系的是标记边界的确定性。</p>
+<h3 id="完美划分？"><a href="#完美划分？" class="headerlink" title="完美划分？"></a>完美划分？</h3><p>三色不变性实际保证的是<strong>可达节点不会被标记为不可达</strong>，但是不对<strong>不可达节点应尽量少地被标记为可达</strong>做出保证。那么有没有能够在有向图会动态变化的情况下，保证在某一时刻实现<strong>完美划分</strong>（所有可达节点是黑色，不可达节点是白色）的办法呢？</p>
+<h2 id="屏障技术"><a href="#屏障技术" class="headerlink" title="屏障技术"></a>屏障技术</h2><h3 id="维护三色不变性"><a href="#维护三色不变性" class="headerlink" title="维护三色不变性"></a>维护三色不变性</h3><h3 id="插入写屏障"><a href="#插入写屏障" class="headerlink" title="插入写屏障"></a>插入写屏障</h3><h3 id="删除写屏障"><a href="#删除写屏障" class="headerlink" title="删除写屏障"></a>删除写屏障</h3><h3 id="混合写屏障"><a href="#混合写屏障" class="headerlink" title="混合写屏障"></a>混合写屏障</h3>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E6%8A%BD%E8%B1%A1"><span class="toc-number">1.</span> <span class="toc-text">三色抽象</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E6%8A%BD%E8%B1%A1%E4%B8%8EBFS"><span class="toc-number">1.1.</span> <span class="toc-text">三色抽象与BFS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E4%B8%8D%E5%8F%98%E6%80%A7"><span class="toc-number">1.2.</span> <span class="toc-text">三色不变性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E7%BE%8E%E5%88%92%E5%88%86%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">完美划分？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B1%8F%E9%9A%9C%E6%8A%80%E6%9C%AF"><span class="toc-number">2.</span> <span class="toc-text">屏障技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%B4%E6%8A%A4%E4%B8%89%E8%89%B2%E4%B8%8D%E5%8F%98%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">维护三色不变性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E5%85%A5%E5%86%99%E5%B1%8F%E9%9A%9C"><span class="toc-number">2.2.</span> <span class="toc-text">插入写屏障</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E5%86%99%E5%B1%8F%E9%9A%9C"><span class="toc-number">2.3.</span> <span class="toc-text">删除写屏障</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%B7%E5%90%88%E5%86%99%E5%B1%8F%E9%9A%9C"><span class="toc-number">2.4.</span> <span class="toc-text">混合写屏障</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="mailto:?subject=三色标记法与一些零散的思考&body=Check out this article: http://example.com/2022/11/22/tricolor-mark/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2019-2022
+    DengQuanxin
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
